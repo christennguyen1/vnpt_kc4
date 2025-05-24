@@ -1,0 +1,41 @@
+### Sign in
+POST http://notebook4g.vnptit.vn:8081/v1/login
+Content-Type: application/json
+
+{
+    "username": "user",
+    "password": "password123"
+}
+
+
+### send data aqi
+POST http://notebook4g.vnptit.vn:8081/v1/air-quality
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MmQ4YmI4NWMxY2YxYmRlYmE5ODJlYyIsImlhdCI6MTc0Nzk3NzEzMCwiZXhwIjoxNzQ3OTgwNzMwfQ.tuxd2oESdIYSsmALreY5-uKuuNIDuEFSPej--h1woFw
+
+{
+    "device_name": "Sensor HCM",
+    "aqi": 110,
+    "no2Aqi": 18,
+    "so2Aqi": 10,
+    "o3Aqi": 25,
+    "pm25Aqi": 55,
+    "pm10Aqi": 70,
+    "coAqi": 8,
+    "timestamp": "2025-05-21T08:15:55.726+00:00"
+}
+
+### Get all data Sensors month
+POST http://0.0.0.0:8000/api/sensors/create
+Content-Type: application/json
+
+{
+    "device_name": "Sensor HCM",
+    "aqi": 110,
+    "no2Aqi": 18,
+    "so2Aqi": 10,
+    "o3Aqi": 25,
+    "pm25Aqi": 55,
+    "pm10Aqi": 70,
+    "coAqi": 8
+}
