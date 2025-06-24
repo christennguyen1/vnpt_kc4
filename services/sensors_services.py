@@ -1,8 +1,12 @@
-from datetime import datetime
-import requests
+from fastapi import HTTPException
+from fastapi.encoders import jsonable_encoder 
+from schemas import SensorData, SensorDataWeek, SensorDataDay, SensorDataMonth
+import asyncio
+from datetime import datetime, timedelta, timezone
+import pandas as pd
+from dateutil.relativedelta import relativedelta
 import pytz
-import os
-import json
+import requests
 import urllib3
 
 async def service_post_all_data(body):
@@ -47,3 +51,6 @@ async def service_post_all_data(body):
         print(response.text)
     except requests.exceptions.RequestException as e:
         print("Lỗi khi gửi request:", e)
+
+    return response,200
+
