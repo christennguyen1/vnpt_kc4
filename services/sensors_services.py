@@ -1,91 +1,45 @@
-from datetime import datetime
 import requests
-import pytz
+import json
+import urllib3
 
-async def service_post_all_data(body):
-    data = body
-    
-    device_name = str(data.get('device_name', ""))
-    aqi = float(data.get('aqi', 0))
-    no2Aqi = float(data.get('no2Aqi', 0))
-    so2Aqi = float(data.get('so2Aqi', 0))
-    o3Aqi = float(data.get('o3Aqi', 0))
-    pm25Aqi = float(data.get('pm25Aqi', 0))
-    pm10Aqi = float(data.get('pm10Aqi', 0))
-    coAqi = float(data.get('coAqi', 0))
-    
-    vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
-    vietnam_time = datetime.now(vietnam_tz)
-    
-    formatted_time = vietnam_time.strftime("%Y-%m-%dT%H:%M:%S")
-    print(f"Thời gian nhận dữ liệu: {formatted_time}")
+# Tắt warning SSL (do bypass SSL verification)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    
-    # URL và timeout chung
-    login_url = "http://123.25.190.46:8081/v1/login"
-    air_quality_url = "http://123.25.190.46:8081/v1/air-quality"
-    timeout = 60
+# URL API
+url = "https://florus.hpcc.vn/api/external/data"
 
-    # Login để lấy token
-    try:
-        login_headers = {"Content-Type": "application/json"}
-        login_payload = {"username": "user", "password": "password123"}
-        login_response = requests.post(login_url, json=login_payload, headers=login_headers, timeout=timeout)
-        login_response.raise_for_status()
-        token = login_response.json()["token"]
-        print("Login thành công")
-    except Exception as e:
-        print(f"Lỗi login: {e}")
-        return
+# Header
+headers = {
+    "Content-Type": "application/json"
+}
 
-    # Gửi air quality
-    air_quality_headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {token}"
-    }
-    air_quality_payload = {
-        "device_name": device_name,
-        "aqi": aqi,
-        "no2Aqi": no2Aqi,
-        "so2Aqi": so2Aqi,
-        "o3Aqi": o3Aqi,
-        "pm25Aqi": pm25Aqi,
-        "pm10Aqi": pm10Aqi,
-        "coAqi": coAqi,
-        "timestamp": str(formatted_time)
-    }
+# Dữ liệu gửi lên
+data = {
+    "device_name": "Sensor HCM",
+    "dataset": "aqi_index_mr_nhan",
+    "device_token": "cvcvxcv",
+    "longitude": 232.3123,
+    "latitude": 32.4324,
+    "no2": 123.1,
+    "so2": 321.1,
+    "o3": 123.1,
+    "pm25": 123.1,
+    "pm10": 123.1,
+    "aqi": 112,
+    "no2Aqi": 18,
+    "so2Aqi": 10,
+    "o3Aqi": 25,
+    "pm25Aqi": 55,
+    "pm10Aqi": 70,
+    "coAqi": 8,
+    "timestamp": "2025-08-21T08:15:55.726+00:00"
+}
 
-    try:
-        air_quality_response = requests.post(air_quality_url, json=air_quality_payload, headers=air_quality_headers, timeout=timeout)
-        air_quality_response.raise_for_status()
-        print("Gửi air quality thành công:", air_quality_response.json())
-    except requests.exceptions.HTTPError as e:
-        if air_quality_response.status_code in (401, 403):  # Lỗi xác thực
-            print(f"Lỗi xác thực: {e}, thử login lại")
-            try:
-                # Login lại để lấy token mới
-                login_response = requests.post(login_url, json=login_payload, headers=login_headers, timeout=timeout)
-                login_response.raise_for_status()
-                token = login_response.json()["token"]
-                print("Login lại thành công")
-                
-                # Gửi lại air quality với token mới
-                air_quality_headers["Authorization"] = f"Bearer {token}"
-                air_quality_response = requests.post(air_quality_url, json=air_quality_payload, headers=air_quality_headers, timeout=timeout)
-                air_quality_response.raise_for_status()
-                print("Gửi air quality thành công:", air_quality_response.json())
-            except Exception as retry_e:
-                print(f"Lỗi khi thử lại: {retry_e}")
-        else:
-            print(f"Lỗi HTTP: {e}")
-    except Exception as e:
-        print(f"Lỗi gửi air quality: {e}")
-    
-    # Trả về thông tin sau khi xử lý
-    response = {
-        'message': 'Data sensors post successfully',
-        'data': air_quality_payload
-    }
-    
-    return response, 201
-
+# Gửi request POST với verify=False (bỏ qua kiểm tra SSL)
+try:
+    response = requests.post(url, headers=headers, json=data, verify=False, timeout=10)
+    response.raise_for_status()  # Nếu HTTP trả lỗi sẽ raise exception
+    print("Gửi thành công. Phản hồi từ server:")
+    print(response.text)
+except requests.exceptions.RequestException as e:
+    print("Lỗi khi gửi request:", e)
