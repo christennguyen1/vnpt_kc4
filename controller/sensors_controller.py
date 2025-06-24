@@ -1,4 +1,5 @@
-from services.sensors_services import  service_post_all_data
+
+from services.sensors_services import service_post_all_data
 from fastapi.responses import JSONResponse
 
 
@@ -18,4 +19,3 @@ async def controller_post_data(body):
             "message": str(e),
             "error": 1
         }, 500
-
