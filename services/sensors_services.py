@@ -8,20 +8,17 @@ from dateutil.relativedelta import relativedelta
 import pytz
 import requests
 import urllib3
+import json
 
 async def service_post_all_data(body):
     # Tắt warning SSL (do bypass SSL verification)
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     
-    # URL API
     url = "https://florus.hpcc.vn/api/external/data"
-    
-    # Header
     headers = {
         "Content-Type": "application/json"
     }
     
-    # Dữ liệu gửi lên
     data = {
         "device_name": "Sensor HCM",
         "dataset": "aqi_index_mr_nhan",
@@ -43,14 +40,18 @@ async def service_post_all_data(body):
         "timestamp": "2025-08-21T08:15:55.726+00:00"
     }
     
-    # Gửi request POST với verify=False (bỏ qua kiểm tra SSL)
     try:
         response = requests.post(url, headers=headers, json=data, verify=False, timeout=10)
-        response.raise_for_status()  # Nếu HTTP trả lỗi sẽ raise exception
-        print("Gửi thành công. Phản hồi từ server:")
-        print(response.text)
+        response.raise_for_status()
+
+        # Parse response JSON để lấy message
+        response_json = response.json()
+        message = response_json.get("message", "No message returned")
+
+        print("Message nhận được:", message)
+
+        return {"message": message}, 200
+
     except requests.exceptions.RequestException as e:
         print("Lỗi khi gửi request:", e)
-
-    return response,200
-
+        return {"error": str(e)}, 500
