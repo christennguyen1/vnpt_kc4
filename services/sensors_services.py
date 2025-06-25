@@ -10,6 +10,26 @@ import urllib3
 import json
 
 async def service_post_all_data(body):
+
+    device_name = body.get("device_name")
+    dataset = body.get("dataset")
+    device_token = body.get("device_token")
+    longitude = float(body.get("longitude"))
+    latitude = float(body.get("latitude"))
+    no2 = float(body.get("no2"))
+    so2 = float(body.get("so2"))
+    o3 = float(body.get("o3"))
+    pm25 = float(body.get("pm25"))
+    pm10 = float(body.get("pm10"))
+    aqi = float(body.get("aqi"))
+    no2Aqi = float(body.get("no2Aqi"))
+    so2Aqi = float(body.get("so2Aqi"))
+    o3Aqi = float(body.get("o3Aqi"))
+    pm25Aqi = float(body.get("pm25Aqi"))
+    pm10Aqi = float(body.get("pm10Aqi"))
+    coAqi = float(body.get("coAqi"))
+    timestamp = body.get("timestamp")
+
     # Tắt warning SSL (do bypass SSL verification)
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     
@@ -19,24 +39,24 @@ async def service_post_all_data(body):
     }
     
     data = {
-        "device_name": "Sensor HCM",
-        "dataset": "aqi_index_mr_nhan",
-        "device_token": "cvcvxcv",
-        "longitude": 232.3123,
-        "latitude": 32.4324,
-        "no2": 123.1,
-        "so2": 321.1,
-        "o3": 123.1,
-        "pm25": 123.1,
-        "pm10": 123.1,
-        "aqi": 112,
-        "no2Aqi": 18,
-        "so2Aqi": 10,
-        "o3Aqi": 25,
-        "pm25Aqi": 55,
-        "pm10Aqi": 70,
-        "coAqi": 8,
-        "timestamp": "2025-08-21T08:15:55.726+00:00"
+        "device_name": device_name,
+        "dataset": dataset,
+        "device_token": device_token,
+        "longitude": longitude,
+        "latitude": latitude,
+        "no2": no2,
+        "so2": so2,
+        "o3": o3,
+        "pm25": pm25,
+        "pm10": pm10,
+        "aqi": aqi,
+        "no2Aqi": no2Aqi,
+        "so2Aqi": so2Aqi,
+        "o3Aqi": o3Aqi,
+        "pm25Aqi": pm25Aqi,
+        "pm10Aqi": pm10Aqi,
+        "coAqi": coAqi,
+        "timestamp": timestamp
     }
     
     try:
