@@ -12,35 +12,73 @@ import os
 import sys
 import math
 
+import requests
+import pandas as pd
+import urllib3
+from datetime import datetime
+
 async def service_post_all_data(body):
 
-    device_name = body.get("device_name")
-    dataset = body.get("dataset")
-    device_token = body.get("device_token")
-    longitude = float(body.get("longitude"))
-    latitude = float(body.get("latitude"))
-    no2 = float(body.get("no2"))
-    so2 = float(body.get("so2"))
-    o3 = float(body.get("o3"))
-    pm25 = float(body.get("pm25"))
-    pm10 = float(body.get("pm10"))
-    aqi = float(body.get("aqi"))
-    no2Aqi = float(body.get("no2Aqi"))
-    so2Aqi = float(body.get("so2Aqi"))
-    o3Aqi = float(body.get("o3Aqi"))
-    pm25Aqi = float(body.get("pm25Aqi"))
-    pm10Aqi = float(body.get("pm10Aqi"))
-    coAqi = float(body.get("coAqi"))
-    timestamp = body.get("timestamp")
+    try:
+        device_name = body["device_name"]
+        dataset = body["dataset"]
+        device_token = body["device_token"]
+        longitude = float(body["longitude"])
+        latitude = float(body["latitude"])
+        no2 = float(body["no2"])
+        so2 = float(body["so2"])
+        o3 = float(body["o3"])
+        pm25 = float(body["pm25"])
+        pm10 = float(body["pm10"])
+        aqi = float(body["aqi"])
+        no2Aqi = float(body["no2Aqi"])
+        so2Aqi = float(body["so2Aqi"])
+        o3Aqi = float(body["o3Aqi"])
+        pm25Aqi = float(body["pm25Aqi"])
+        pm10Aqi = float(body["pm10Aqi"])
+        coAqi = float(body["coAqi"])
+        timestamp = body["timestamp"]
+    except Exception as e:
+        return {"error": f"Missing or invalid fields: {e}"}, 400
 
-    # Tắt warning SSL (do bypass SSL verification)
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    
-    url = "https://florus.hpcc.vn/api/external/data"
-    headers = {
-        "Content-Type": "application/json"
+    # ---- Lấy dữ liệu thời tiết ----
+    weather_url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "hourly": "temperature_2m,relative_humidity_2m",
+        "forecast_days": 2,
+        "timezone": "Asia/Bangkok"
     }
-    
+
+    try:
+        r = requests.get(weather_url, params=params, timeout=5).json()
+
+        df = pd.DataFrame({
+            "time": r["hourly"]["time"],
+            "temperature": r["hourly"]["temperature_2m"],
+            "humidity": r["hourly"]["relative_humidity_2m"]
+        })
+
+        df["time"] = pd.to_datetime(df["time"])
+        now = datetime.now()
+
+        df["time_diff"] = abs(df["time"] - now)
+        nearest_row = df.loc[df["time_diff"].idxmin()]
+
+        print("⏱ Thời điểm gần nhất:", nearest_row["time"])
+        print("🌡 Temperature:", nearest_row["temperature"])
+        print("💧 Humidity:", nearest_row["humidity"])
+
+    except Exception as e:
+        return {"error": f"Weather API error: {e}"}, 500
+
+    # ---- Gửi dữ liệu lên server ----
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    url = "https://florus.hpcc.vn/api/external/data"
+    headers = {"Content-Type": "application/json"}
+
     data = {
         "device_name": device_name,
         "dataset": dataset,
@@ -59,25 +97,24 @@ async def service_post_all_data(body):
         "pm25Aqi": pm25Aqi,
         "pm10Aqi": pm10Aqi,
         "coAqi": coAqi,
+        "temperature": float(nearest_row["temperature"]),
+        "humidity": float(nearest_row["humidity"]),
         "timestamp": timestamp
     }
-    
+
     try:
         response = requests.post(url, headers=headers, json=data, verify=False, timeout=10)
         response.raise_for_status()
 
-        # Parse response JSON để lấy message
-        response_json = response.json()
-        message = response_json.get("message", "No message returned")
+        msg = response.json().get("message", "No message")
+        print("Server message:", msg)
 
-        print("Message nhận được:", message)
-
-        return {"message": message}, 200
+        return {"message": msg, "data": data}, 200
 
     except requests.exceptions.RequestException as e:
-        print("Lỗi khi gửi request:", e)
+        print("❌ Lỗi gọi API:", e)
         return {"error": str(e)}, 500
-    
+
 
 def normalize_number(x):
     if x < 100:
