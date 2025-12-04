@@ -103,5 +103,11 @@ async def get_aqi(data: Dict):
     aqi = aqi_hourly(pm25, pm10, no2, o3, so2, co)
 
     return {
+        "pm25Aqi": pm25,
+        "pm10Aqi": pm10,
+        "no2Aqi": no2,
+        "o3Aqi": o3,
+        "so2Aqi": so2,
+        "coAqi": co,
         "aqi": aqi
     }
