@@ -17,6 +17,14 @@ import pandas as pd
 import urllib3
 from datetime import datetime
 
+import httpx
+import urllib3
+from datetime import timedelta
+import email.utils
+
+import random
+from datetime import datetime, timedelta
+
 async def service_post_all_data(body):
 
     try:
@@ -124,49 +132,94 @@ def normalize_number(x):
     return round(x / divisor, 3)      # làm tròn 3 số sau dấu phẩy
 
 
-async def service_get_data_sensor_predict():
-    # Tắt warning SSL (do bypass SSL verification)
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    
-    url = "https://florus.hpcc.vn/api/aqi_server/predict"
-    headers = {
-        "Content-Type": "application/json"
+def find_prediction_for_hour(predictions, target_time):
+    for item in predictions:
+        item_time = email.utils.parsedate_to_datetime(item["timestamp"])
+        if item_time >= target_time:
+            return item
+    return None
+
+
+import httpx
+import json
+import email.utils
+from datetime import timedelta
+
+async def service_get_predicted_aqi(payload):
+    """
+    payload: object có thuộc tính station_id và timestamp (str)
+    """
+    url = "https://florus.hpcc.vn/api/aqi_server/prediction"
+    headers = {"Content-Type": "application/json"}
+
+    data = {
+        "timestamp": "2025-11-28 00:00:00",
+        "station_id": "216",
+        "latitude": "10.780482",
+        "longitude": "106.659511",
+        "limit": 20,
+        "offset": 0,
+        "flag": True
     }
-    
-    try:
-        json_path = os.path.join(os.getcwd(), "predict_data.json")
 
-        with open(json_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+    # async with httpx.AsyncClient(verify=False, timeout=10) as client:
+    #     response = await client.request("GET", url, headers=headers, json=data)
+    #     try:
+    #         response.raise_for_status()
+    #         response_json = response.json()  # dict
+    #         print(json.dumps(response_json, indent=4))  # chỉ để debug
+    #     except httpx.HTTPStatusError as e:
+    #         print(f"HTTP error: {e.response.status_code} - {e.response.text}")
+    #         return {"message": str(e), "predictions": []}
+    #     except Exception as e:
+    #         print(f"Other error: {str(e)}")
+    #         return {"message": str(e), "predictions": []}
 
-        response = requests.post(url, headers=headers, json=data, verify=False, timeout=10)
-        response.raise_for_status()
+    # predictions = response_json.get("prediction", [])
+    # if not predictions:
+    #     return {"message": response_json.get("message", "No data"), "predictions": []}
 
-        # Parse response JSON để lấy message
-        response_json = response.json()
-        message = response_json.get("message", "No message returned")
-        data = response_json.get("data", "No data returned")
-        data_list = data["value_72h"]
-        seven_values = [normalize_number(v) for v in data_list[:7]]
+    # # timestamp gốc
+    # ts_dt = email.utils.parsedate_to_datetime(predictions[0]["timestamp"])
 
-        # giá trị thứ 24, 48, 72 (nếu có)
-        values_24_48_72 = []
-        for idx in [23, 47, 71]:
-            if idx < len(data_list):
-                values_24_48_72.append(normalize_number(data_list[idx]))
+    # result = {}
+    # for h in [1, 2, 3]:
+    #     target = ts_dt + timedelta(hours=h)
+    #     pred = find_prediction_for_hour(predictions, target)
+    #     if pred:
+    #         result[f"{h}h"] = {
+    #             "pm25": pred["pm25_predicted"],
+    #             "pm10": pred["pm10_predicted"],
+    #             "no2": pred["no2_predicted"],
+    #             "co": pred["co_predicted"],
+    #             "so2": pred["so2_predicted"],
+    #             "o3": pred["o3_predicted"],
+    #             "timestamp": pred["timestamp"]
+    #         }
 
-        print("7 giá trị đầu:", seven_values)
-        print("Giá trị 24, 48, 72:", values_24_48_72)
+    ts_dt = datetime.fromisoformat(payload.timestamp)
 
-        data = {
-            "value_7h": seven_values,
-            "value_24h": values_24_48_72[0],
-            "value_48h": values_24_48_72[1],
-            "value_72h": values_24_48_72[2],
+    result = {}
+    for h in [1, 2, 3]:
+        target_time = ts_dt + timedelta(hours=h)
+        # Sinh random các thông số trong khoảng hợp lý
+        pred = {
+            "pm25": round(random.uniform(20, 40), 2),
+            "pm10": round(random.uniform(20, 50), 2),
+            "no2": round(random.uniform(0.01, 0.4), 2),
+            "co": round(random.uniform(0.01, 0.4), 2),
+            "so2": round(random.uniform(0.01, 0.4), 2),
+            "o3": round(random.uniform(0.01, 0.4), 3),
+            "timestamp": target_time.isoformat(),
+            "station_id": payload.station_id
         }
+        result[f"{h}h"] = pred
 
-        return {"message": message, "data": data}, 200
+    return {
+        "message": "Mocked prediction data",
+        "predictions": result
+    }
 
-    except requests.exceptions.RequestException as e:
-        print("Lỗi khi gửi request:", e)
-        return {"error": str(e)}, 500
+    return {"message": response_json.get("message", "Success"), "predictions": result}
+
+    # return {}

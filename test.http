@@ -13,15 +13,14 @@ GET https://florus.hpcc.vn/api/aqi_server/prediction
 Content-Type: application/json
 
 {
-    "timestamp": "2025-08-15 00:00:00",
-    "station_id": "215",
-    "longitude": 106.5911653,
-    "latitude": 10.7476795,
-    "limit": 1,
-    "offset": 1,
+    "timestamp": "2025-11-28 00:00:00",
+    "station_id": "216",
+    "latitude": "10.780482",
+    "longitude": "106.659511",
+    "limit": 20,
+    "offset": 0,
     "flag": true
 }
-
 
 
 ### Get Data Temp & Hum
@@ -52,4 +51,54 @@ Content-Type: application/json
     "pm10Aqi": 31,
     "coAqi": 0.258,
     "timestamp": "2025-11-24T22:41:02.695+07:00"
+}
+
+### Get Data Tem and Hum
+POST https://florus.hpcc.vn/api/external/data
+Content-Type: application/json
+
+{
+    "device_name": "[KC] Air Quality 3C",
+    "dataset": "aqi_index_mr_nhan",
+    "device_token": "cmvmcxvn",
+    "longitude": 106.5911653,
+    "latitude": 10.7476795,
+    "no2": 0.061,
+    "so2": 0.059,
+    "o3": 0.078,
+    "pm25": 26,
+    "pm10": 31,
+    "aqi": 0,
+    "no2Aqi": 0.061,
+    "so2Aqi": 0.059,
+    "o3Aqi": 0.078,
+    "pm25Aqi": 26,
+    "pm10Aqi": 31,
+    "coAqi": 0.258,
+    "temperature": 70,
+    "humidity": 60,
+    "timestamp": "2025-11-24T22:41:02.695+07:00"
+}
+
+### prediction
+POSt http://0.0.0.0:8000/api/sensors/predict
+Content-Type: application/json
+
+{
+    "station_id":  "216",
+    "timestamp": "2025-11-28T00:00:00"
+}
+
+
+### aqi
+POST http://0.0.0.0:8000/api/sensors/aqi
+Content-Type: application/json
+
+{
+    "pm25": 100.0,
+    "pm10": 100.0,
+    "no2": 100.0,
+    "o3": 100.0,
+    "so2": 100.0,
+    "co": 100.0
 }
