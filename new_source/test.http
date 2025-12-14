@@ -29,7 +29,7 @@ Content-Type: application/json
 
 
 ### Get Data Tem and Hum
-POST https://tendencious-pneumatological-claire.ngrok-free.dev/api/sensors/create
+POST http://0.0.0.0:8000/api/sensors/create
 Content-Type: application/json
 
 {
@@ -50,11 +50,8 @@ Content-Type: application/json
     "pm25Aqi": 26,
     "pm10Aqi": 31,
     "coAqi": 0.258,
-    "temperature": 70,
-    "humidity": 60,
     "timestamp": "2025-11-24T22:41:02.695+07:00"
 }
-
 
 ### Get Data Tem and Hum
 POST https://florus.hpcc.vn/api/external/data
@@ -83,9 +80,6 @@ Content-Type: application/json
     "timestamp": "2025-11-24T22:41:02.695+07:00"
 }
 
-
-
-
 ### prediction
 POSt http://0.0.0.0:8000/api/sensors/predict
 Content-Type: application/json
@@ -96,24 +90,8 @@ Content-Type: application/json
 }
 
 
-
-
 ### aqi
-POST http://100.86.94.33:8000/api/sensors/aqi
-Content-Type: application/json
-
-{
-    "pm25": 100.0,
-    "pm10": 100.0,
-    "no2": 100.0,
-    "o3": 100.0,
-    "so2": 100.0,
-    "co": 100.0
-}
-
-
-### aqi
-POST http://coreiot.kcair.dpdns.org/api/sensors/aqi
+POST https://vnpt-kc4.onrender.com/api/sensors/aqi
 Content-Type: application/json
 
 {
