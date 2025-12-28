@@ -26,6 +26,8 @@ async def get_data_sensor_predict(payload: AQIPredictRequest):
 
 class AQIRequest(BaseModel):
     device_name: str           # Lấy pm25/pm10 từ ThingsBoard
+    pm10: Optional[float] = None
+    pm25: Optional[float] = None
     no2: Optional[float] = None
     so2: Optional[float] = None
     o3: Optional[float] = None
@@ -58,6 +60,12 @@ async def predict_aqi(payload: AQIRequest):
 
     # Trả response đúng format
     return {
+        "pm10": data.get("pm10"),
+        "pm25": data.get("pm25"),
+        "no2": data.get("no2"),
+        "so2": data.get("so2"),
+        "o3": data.get("o3"),
+        "co": data.get("co"),
         "pm25Aqi": components.get("pm25"),
         "pm10Aqi": components.get("pm10"),
         "no2Aqi":  components.get("no2"),
