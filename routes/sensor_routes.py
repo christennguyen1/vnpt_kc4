@@ -24,6 +24,30 @@ async def get_data_sensor_predict(payload: AQIPredictRequest):
     return await controller_get_data_sensor_predict(payload)
 
 
+def convert_no2_ppm_to_ugm3(no2_ppm: float) -> Optional[float]:
+    if no2_ppm is None:
+        return None
+    MOLAR_MASS_NO2 = 46.0055
+    return no2_ppm * MOLAR_MASS_NO2 * 1000 / 24.45
+
+def convert_so2_ppm_to_ugm3(so2_ppm: float) -> Optional[float]:
+    if so2_ppm is None:
+        return None
+    MOLAR_MASS_SO2 = 64.066
+    return so2_ppm * MOLAR_MASS_SO2 * 1000 / 24.45
+
+def convert_o3_ppm_to_ugm3(o3_ppm: float) -> Optional[float]:
+    if o3_ppm is None:
+        return None
+    MOLAR_MASS_O3 = 48.00
+    return o3_ppm * MOLAR_MASS_O3 * 1000 / 24.45
+
+def convert_co_ppm_to_ugm3(co_ppm: float) -> Optional[float]:
+    if co_ppm is None:
+        return None
+    MOLAR_MASS_CO = 28.01
+    return co_ppm * MOLAR_MASS_CO * 1000 / 24.45
+
 class AQIRequest(BaseModel):
     device_name: str           # Lấy pm25/pm10 từ ThingsBoard
     pm10: Optional[float] = None
@@ -48,10 +72,10 @@ async def predict_aqi(payload: AQIRequest):
     service_data = {
         "pm10_12h": pm10_12h,
         "pm25_12h": pm25_12h,
-        "no2_1h": data.get("no2"),
-        "so2_1h": data.get("so2"),
-        "o3_1h": data.get("o3"),
-        "co_1h": data.get("co"),
+        "no2_1h": convert_no2_ppm_to_ugm3(data.get("no2")),
+        "so2_1h": convert_so2_ppm_to_ugm3(data.get("so2")),
+        "o3_1h": convert_o3_ppm_to_ugm3(data.get("o3")),
+        "co_1h": convert_co_ppm_to_ugm3(data.get("co")),
         "no_1h": data.get("no"),
     }
 
