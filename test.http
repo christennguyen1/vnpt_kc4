@@ -86,8 +86,9 @@ POSt http://0.0.0.0:8000/api/sensors/predict
 Content-Type: application/json
 
 {
-    "station_id":  "215",
-    "timestamp": "2025-12-27T00:00:00"
+    "device_name": "[KC] Air Quality 3A",
+    "station_id":  "213",
+    "timestamp": "2025-12-28T19:15:18.581492499Z"
 }
 
 
@@ -98,12 +99,12 @@ POST http://0.0.0.0:8000/api/sensors/aqi
 Content-Type: application/json
 
 {
-    "pm25": 100.0,
-    "pm10": 100.0,
+    "device_name": "[KC] Air Quality 3A",
     "no2": 100.0,
     "o3": 100.0,
     "so2": 100.0,
-    "co": 100.0
+    "co": 100.0,
+    "no": 100.0
 }
 
 

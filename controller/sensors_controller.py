@@ -93,9 +93,10 @@ async def controller_get_data_sensor_predict(payload):
     try:
         station_id = payload.station_id
         timestamp = payload.timestamp
+        device_name = payload.device_name
 
         # 1️⃣ Lấy PM quá khứ
-        pm10_hist, pm25_hist = get_pm_aqi_arrays("[KC] Air Quality 4A")
+        pm10_hist, pm25_hist = get_pm_aqi_arrays(device_name)
 
         # 2️⃣ Lấy future prediction
         future = await service_get_predicted_aqi(
