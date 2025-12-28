@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Request, Query
 from fastapi.security import OAuth2PasswordBearer
-from controller.sensors_controller import controller_post_data, controller_get_data_sensor_predict, get_aqi
+from controller.sensors_controller import controller_post_data, controller_get_data_sensor_predict
 from pydantic import BaseModel
+from services.predict_sensors import aqi_overall_hourly_pm_only
 
 router = APIRouter()
 
@@ -17,16 +18,8 @@ class AQIPredictRequest(BaseModel):
 
 @router.post("/predict")
 async def get_data_sensor_predict(payload: AQIPredictRequest):
-    # Tạo payload đơn giản
-    class Payload:
-        pass
-    p = Payload()
-    p.station_id = payload.station_id
-    p.timestamp = payload.timestamp
+    return await controller_get_data_sensor_predict(payload)
 
-    print(payload)
-
-    return await controller_get_data_sensor_predict(p)
 
 class AQIRequest(BaseModel):
     pm25: float
@@ -38,4 +31,28 @@ class AQIRequest(BaseModel):
 
 @router.post("/aqi")
 async def predict_aqi(payload: AQIRequest):
-    return await get_aqi(payload.model_dump())
+    data = payload.model_dump()
+
+    # ---- AQI thành phần (đã là AQI, không tính lại) ----
+    components = {
+        "pm25": round(data["pm25"]),
+        "pm10": round(data["pm10"]),
+        "no2":  round(data["no2"]),
+        "o3":   round(data["o3"]),
+        "so2":  round(data["so2"]),
+        "co":   round(data["co"]),
+    }
+
+    # ---- AQI tổng (PM only) ----
+    aqi = aqi_overall_hourly_pm_only(components)
+
+    # ---- Response đúng format bạn yêu cầu ----
+    return {
+        "pm25Aqi": data["pm25"],
+        "pm10Aqi": data["pm10"],
+        "no2Aqi":  data["no2"],
+        "o3Aqi":   data["o3"],
+        "so2Aqi":  data["so2"],
+        "coAqi":   data["co"],
+        "aqi": aqi
+    }

@@ -140,86 +140,93 @@ def find_prediction_for_hour(predictions, target_time):
     return None
 
 
-import httpx
-import json
-import email.utils
-from datetime import timedelta
+import requests
+from typing import Dict, Any, List
 
-async def service_get_predicted_aqi(payload):
-    """
-    payload: object có thuộc tính station_id và timestamp (str)
-    """
-    url = "https://florus.hpcc.vn/api/aqi_server/prediction"
-    headers = {"Content-Type": "application/json"}
 
-    data = {
-        "timestamp": "2025-11-28 00:00:00",
-        "station_id": "216",
-        "latitude": "10.780482",
-        "longitude": "106.659511",
-        "limit": 20,
+PREDICT_API_URL = "https://florus.hpcc.vn/api/aqi_server/prediction"
+
+
+# async def service_get_predicted_aqi(
+#     station_id: str,
+#     timestamp: str,
+#     limit: int = 20
+# ) -> Dict[str, Any]:
+
+#     payload = {
+#         "station_id": station_id,
+#         "timestamp": timestamp,
+#         "limit": limit,
+#         "offset": 0,
+#         "flag": True
+#     }
+
+#     res = requests.get(PREDICT_API_URL, json=payload, timeout=10, verify=False)
+#     res.raise_for_status()
+
+#     data = res.json()
+#     predictions = data.get("prediction", [])
+
+#     if len(predictions) < 12:
+#         raise ValueError("Not enough prediction data")
+
+#     # sort theo thời gian (cũ -> mới)
+#     predictions.sort(key=lambda x: x["timestamp"])
+
+#     # 12 mốc thời gian gần nhất
+#     latest_12 = predictions[-12:]
+
+#     latest = latest_12[-1]
+
+#     return {
+#         "pm25_12h": [p["pm25_predicted"] for p in latest_12],
+#         "pm10_12h": [p["pm10_predicted"] for p in latest_12],
+#         "no2_1h": latest.get("no2_predicted"),
+#         "so2_1h": latest.get("so2_predicted"),
+#         "o3_1h": latest.get("o3_predicted"),
+#         "co_1h": latest.get("co_predicted"),
+#     }
+
+async def service_get_predicted_aqi(
+    station_id: str,
+    timestamp: str,
+    limit: int = 20
+) -> List[Dict[str, Any]]:
+
+    payload = {
+        "station_id": station_id,
+        "timestamp": timestamp,
+        "limit": limit,
         "offset": 0,
-        "flag": True
+        "flag": False
     }
 
-    # async with httpx.AsyncClient(verify=False, timeout=10) as client:
-    #     response = await client.request("GET", url, headers=headers, json=data)
-    #     try:
-    #         response.raise_for_status()
-    #         response_json = response.json()  # dict
-    #         print(json.dumps(response_json, indent=4))  # chỉ để debug
-    #     except httpx.HTTPStatusError as e:
-    #         print(f"HTTP error: {e.response.status_code} - {e.response.text}")
-    #         return {"message": str(e), "predictions": []}
-    #     except Exception as e:
-    #         print(f"Other error: {str(e)}")
-    #         return {"message": str(e), "predictions": []}
+    res = requests.get(PREDICT_API_URL, json=payload, timeout=10, verify=False)
+    res.raise_for_status()
 
-    # predictions = response_json.get("prediction", [])
-    # if not predictions:
-    #     return {"message": response_json.get("message", "No data"), "predictions": []}
+    predictions = res.json().get("prediction", [])
 
-    # # timestamp gốc
-    # ts_dt = email.utils.parsedate_to_datetime(predictions[0]["timestamp"])
+    if len(predictions) < 3:
+        raise ValueError("Not enough future prediction data")
 
-    # result = {}
-    # for h in [1, 2, 3]:
-    #     target = ts_dt + timedelta(hours=h)
-    #     pred = find_prediction_for_hour(predictions, target)
-    #     if pred:
-    #         result[f"{h}h"] = {
-    #             "pm25": pred["pm25_predicted"],
-    #             "pm10": pred["pm10_predicted"],
-    #             "no2": pred["no2_predicted"],
-    #             "co": pred["co_predicted"],
-    #             "so2": pred["so2_predicted"],
-    #             "o3": pred["o3_predicted"],
-    #             "timestamp": pred["timestamp"]
-    #         }
+    # sort theo thời gian tăng dần
+    predictions.sort(key=lambda x: x["timestamp"])
 
-    ts_dt = datetime.fromisoformat(payload.timestamp)
+    # lấy 3 giờ tương lai gần nhất
+    future_3h = predictions[:3]
 
-    result = {}
-    for h in [1, 2, 3]:
-        target_time = ts_dt + timedelta(hours=h)
-        # Sinh random các thông số trong khoảng hợp lý
-        pred = {
-            "pm25": round(random.uniform(20, 40), 2),
-            "pm10": round(random.uniform(20, 50), 2),
-            "no2": round(random.uniform(0.01, 0.4), 2),
-            "co": round(random.uniform(0.01, 0.4), 2),
-            "so2": round(random.uniform(0.01, 0.4), 2),
-            "o3": round(random.uniform(0.01, 0.4), 3),
-            "timestamp": target_time.isoformat(),
-            "station_id": payload.station_id
+    return [
+        {
+            "timestamp": p["timestamp"],
+            "pm25": p["pm25_predicted"],
+            "pm10": p["pm10_predicted"],
+            "no2": p["no2_predicted"],
+            "so2": p["so2_predicted"],
+            "o3": p["o3_predicted"],
+            "co": p["co_predicted"],
+            "no": p["no_predicted"],
         }
-        result[f"{h}h"] = pred
+        for p in future_3h
+    ]
 
-    return {
-        "message": "Mocked prediction data",
-        "predictions": result
-    }
 
-    return {"message": response_json.get("message", "Success"), "predictions": result}
-
-    # return {}

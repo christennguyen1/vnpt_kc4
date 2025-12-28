@@ -8,28 +8,13 @@ Content-Type: application/json
 }
 
 
-### send data aqi
-GET https://florus.hpcc.vn/api/aqi_server/prediction
-Content-Type: application/json
-
-{
-    "timestamp": "2025-11-28 00:00:00",
-    "station_id": "216",
-    "latitude": "10.780482",
-    "longitude": "106.659511",
-    "limit": 20,
-    "offset": 0,
-    "flag": true
-}
-
-
 ### Get Data Temp & Hum
 GET https://api.open-meteo.com/v1/forecast?latitude=10.7476795&longitude=106.5911653&hourly=temperature_2m,relative_humidity_2m&forecast_days=1&timezone=Asia/Bangkok
 Content-Type: application/json
 
 
 ### Get Data Tem and Hum
-POST https://tendencious-pneumatological-claire.ngrok-free.dev/api/sensors/create
+POST http://0.0.0.0:8000/api/sensors/create
 Content-Type: application/json
 
 {
@@ -83,7 +68,17 @@ Content-Type: application/json
     "timestamp": "2025-11-24T22:41:02.695+07:00"
 }
 
+### send data aqi
+GET https://florus.hpcc.vn/api/aqi_server/prediction
+Content-Type: application/json
 
+{
+    "timestamp": "2025-12-28 00:00:00",
+    "station_id": "215",
+    "limit": 20,
+    "offset": 0,
+    "flag": true
+}
 
 
 ### prediction
@@ -91,15 +86,15 @@ POSt http://0.0.0.0:8000/api/sensors/predict
 Content-Type: application/json
 
 {
-    "station_id":  "216",
-    "timestamp": "2025-11-28T00:00:00"
+    "station_id":  "215",
+    "timestamp": "2025-12-27T00:00:00"
 }
 
 
 
 
 ### aqi
-POST http://100.86.94.33:8000/api/sensors/aqi
+POST http://0.0.0.0:8000/api/sensors/aqi
 Content-Type: application/json
 
 {
@@ -113,7 +108,7 @@ Content-Type: application/json
 
 
 ### aqi
-POST http://coreiot.kcair.dpdns.org/api/sensors/aqi
+POST http://0.0.0.0:8000/api/sensors/create
 Content-Type: application/json
 
 {
